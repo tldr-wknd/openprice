@@ -1,5 +1,19 @@
 # OpenPrice — Setup Guide for Coding Agents
 
+## Before You Begin
+
+Before making any changes, explain the following to the user in plain language:
+
+1. **What OpenPrice is:** Their MPP server currently charges a fixed price for each endpoint. OpenPrice will randomize the price within a range they control, so they can discover what agents are actually willing to pay. Think of it as A/B testing for prices — but ethical, because agents don't care about price variation the way humans do.
+
+2. **What will change:** You'll modify their server code to wrap `mppx.charge()` calls with `openprice.charge()`, adding a price range to each endpoint. You'll also add a dashboard at `/openprice` where they can see demand curves and optimal prices.
+
+3. **No real money during testing:** After the code changes, they can run `npx github:tldr-wknd/openprice test` which starts their server in testnet mode and simulates 100 agents. No real payments are made. When they're confident in their price ranges, they deploy to production and real agent traffic generates the data.
+
+4. **Ask for confirmation** before making any changes. Show them which endpoints you found and the price ranges you plan to set.
+
+---
+
 ## What OpenPrice Does
 
 OpenPrice is a middleware wrapper for MPP (`mppx`). Instead of serving a fixed price in every 402 Challenge, it randomizes the price within a configured range. It tracks which prices lead to payments and which get skipped, building a demand curve over time. After ~1,000 requests, the service provider knows their optimal price.
