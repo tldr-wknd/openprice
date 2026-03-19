@@ -10,7 +10,9 @@ Before making any changes, explain the following to the user in plain language:
 
 3. **No real money during testing:** After the code changes, they can run `npx github:tldr-wknd/openprice test` which starts their server in testnet mode and simulates 100 agents. No real payments are made. When they're confident in their price ranges, they deploy to production and real agent traffic generates the data.
 
-4. **Ask for confirmation** before making any changes. Show them which endpoints you found and the price ranges you plan to set.
+4. **Where to see results:** The dashboard will be at `{their-server-domain}/openprice` — for example, if their server runs at `http://localhost:4000`, the dashboard is at `http://localhost:4000/openprice`. In production, it's at their public domain (e.g., `https://api.example.com/openprice`). The dashboard is private — it requires a token passed as a query parameter or stored in a cookie. Only the server operator can access it; agents and end users cannot see pricing data.
+
+5. **Ask for confirmation** before making any changes. Show them which endpoints you found and the price ranges you plan to set.
 
 ---
 
@@ -112,24 +114,66 @@ openprice.charge({
 
 ---
 
-## Testing
+## Step 6: Test on testnet (REQUIRED)
 
-After making the code changes, the service provider can run:
+**Do not skip this step.** After making the code changes, you MUST run the testnet simulation before the user goes to production. This validates that OpenPrice is wired up correctly and lets the user see their demand curves before any real money is involved.
+
+Run this command:
 
 ```bash
 npx github:tldr-wknd/openprice test
 ```
 
-This starts their server in testnet mode (no real money), runs 100 simulated agents, and opens the dashboard so they can see the demand curves build in real-time.
+This will:
+- Start the server in testnet mode (no real money)
+- Create a funded testnet wallet (automatic)
+- Simulate 100 agents with different price preferences
+- Open the dashboard in the browser
 
-## After Testing
+**Wait for the test to complete**, then walk the user through what they see:
 
-When the user confirms the test results look good, guide them to production:
+1. **The dashboard has tabs** — one for each paid endpoint, plus "All" for the aggregate view
+2. **Projected Revenue chart** — the ★ marks the price that maximizes revenue per 1,000 requests. This is the main answer: "if you charged $X, you'd make the most money"
+3. **Demand Curve** — shows how conversion drops as price increases. A steep curve means agents are price-sensitive
+4. **The ★ is the goal** — it's the optimal price point. Left of the star = leaving money on the table. Right of the star = losing too many customers
 
-1. **No code changes needed.** The OpenPrice middleware works identically on mainnet. The only difference is the `OPENPRICE_TESTNET` env var — in production, it's not set, so Tempo runs on mainnet with real payments.
-2. **Deploy as normal.** However they usually deploy their server, they deploy it. OpenPrice is just middleware — it ships with the server.
-3. **Real agent traffic builds real curves.** The demand curves from testing were simulated. In production, actual agents with real willingness-to-pay generate the data. After ~1,000 real requests, the ★ optimal price reflects true market demand.
-4. **They can narrow ranges later.** Once the initial curves show a clear peak, suggest tightening the price range around the ★ for more precise optimization.
+Ask the user: **"Do these ranges look right, or do you want to adjust before going live?"** If they want to adjust ranges, update the code and re-run the test.
+
+## Step 7: Deploy to production (REQUIRED)
+
+**Once the user confirms the test results look good, guide them to production immediately.** Do not end the conversation at the testing step.
+
+Tell the user:
+
+> "Your testnet simulation looks good. Let's go live. No code changes are needed — the same OpenPrice middleware works on mainnet. The only difference is that `OPENPRICE_TESTNET` won't be set, so Tempo processes real payments."
+
+Then:
+
+1. **Stop the test server** if it's still running (Ctrl+C)
+2. **Delete the test database** so production starts fresh: `rm -f openprice.db`
+3. **Start the server normally** — however they usually run it (e.g., `node server.js`)
+4. **Confirm it's running** — visit the root URL and verify the server responds
+5. **Open the dashboard** — visit `/openprice` and confirm it loads (it will be empty — that's expected)
+
+Tell the user:
+
+> "You're live. The dashboard is empty because no real agents have hit your endpoints yet. Here's what to watch for:"
+
+## What to Watch For in Production
+
+Share this with the user after deploying:
+
+- **First few hours:** You'll see individual dots appearing on the charts. Each request is a data point. Don't read too much into early results — small samples are noisy.
+- **~100 requests:** The demand curve starts to take shape. You can see general trends (are agents price-sensitive or not?) but the ★ optimal price may still move around.
+- **~500 requests:** Curves are becoming reliable. The ★ should be stabilizing. If it's near the edge of your range, consider widening that side.
+- **~1,000 requests:** This is the sweet spot. The ★ is your optimal price with high confidence. You now know what to charge.
+- **After convergence:** Tighten your `range` around the ★ (e.g., ±20%) and let it refine further. Or lock in the optimal price by removing the `range` parameter entirely.
+
+**Key signals to watch:**
+- If the ★ is at the **left edge** of your range → your floor is too high, agents think you're expensive. Lower the floor.
+- If the ★ is at the **right edge** → you might be undercharging. Raise the ceiling.
+- If the demand curve is **nearly flat** → agents don't care about price in this range. You can charge more.
+- If the demand curve **drops off a cliff** → there's a hard price ceiling. Stay below it.
 
 ---
 
