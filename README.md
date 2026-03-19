@@ -21,16 +21,10 @@ OpenPrice is middleware for [MPP](https://mpp.dev) (Machine Payments Protocol) t
 git clone https://github.com/tldr-wknd/openprice.git
 cd openprice
 npm install
-node server.js
+node demo.js
 ```
 
-In a second terminal:
-
-```bash
-node agent-100.js
-```
-
-This auto-creates a funded testnet wallet and fires 1,000 requests from 100 simulated agents — each with different price preferences. Open **http://localhost:3000/openprice** and watch the demand curve build in real-time.
+That's it. This starts the server, opens the dashboard in your browser, and fires 1,000 requests from 100 simulated agents with different price preferences. Watch the demand curve build in real-time.
 
 > A pre-loaded version with completed data is at **http://localhost:3000/openprice/testnet** for comparison.
 
