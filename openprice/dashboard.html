@@ -237,7 +237,7 @@ function externalTooltipHandler(context, formatLine) {
 
   // Title: the price
   let html = `<div style="font-size:13px;font-weight:700;color:#1d1d1f;margin-bottom:8px;letter-spacing:-0.3px">
-    $${price.toFixed(2)} <span style="font-weight:400;color:#86868b;font-size:11px">per request</span>
+    $${price < 0.01 ? price.toFixed(3) : price.toFixed(2)} <span style="font-weight:400;color:#86868b;font-size:11px">per request</span>
   </div>`
 
   // Each dataset at this index
@@ -346,7 +346,7 @@ async function loadData() {
       tooltip: { enabled: false },
     },
     scales: {
-      x: { type: 'linear', ticks: { color: '#aeaeb2', maxRotation: 0, maxTicksLimit: 10, font: { size: 11 }, callback: v => '$' + v.toFixed(2) }, grid: { color: 'rgba(0,0,0,0.03)' }, border: { display: false }, title: { display: true, text: 'Price', color: '#aeaeb2', font: { size: 11 } } },
+      x: { type: 'linear', ticks: { color: '#aeaeb2', maxRotation: 0, maxTicksLimit: 10, font: { size: 11 }, callback: v => '$' + (v < 0.01 ? v.toFixed(3) : v.toFixed(2)) }, grid: { color: 'rgba(0,0,0,0.03)' }, border: { display: false }, title: { display: true, text: 'Price', color: '#aeaeb2', font: { size: 11 } } },
       y: { ticks: { color: '#aeaeb2', font: { size: 11 } }, grid: { color: 'rgba(0,0,0,0.03)' }, border: { display: false } }
     },
     elements: { line: { borderWidth: 2.5 }, point: { radius: 0, hoverRadius: 6, hoverBorderWidth: 2, hoverBackgroundColor: '#fff' } },
@@ -382,7 +382,7 @@ async function loadData() {
     if (c.optimal.revenue) {
       const opt = c.optimal.revenue
       const suffix = isAll ? ` ${key}` : ''
-      const label = `$${opt.price.toFixed(2)}${suffix}`
+      const label = `$${(opt.price < 0.01 ? opt.price.toFixed(3) : opt.price.toFixed(2))}${suffix}`
       Object.assign(revenueAnnotations, makeStarAnnotations(opt.price, opt.revenuePer1000, label, col.border, col.glow, `rev_${i}`))
     }
 
@@ -400,7 +400,7 @@ async function loadData() {
       const opt = c.optimal.revenue
       const matchingOutcome = outcomes.find(o => Math.abs(o.price - opt.price) < 0.001)
       if (matchingOutcome) {
-        Object.assign(demandAnnotations, makeStarAnnotations(opt.price, matchingOutcome.expectedConversion * 100, `$${opt.price.toFixed(2)}`, col.border, col.glow, `dem_${i}`))
+        Object.assign(demandAnnotations, makeStarAnnotations(opt.price, matchingOutcome.expectedConversion * 100, `$${(opt.price < 0.01 ? opt.price.toFixed(3) : opt.price.toFixed(2))}`, col.border, col.glow, `dem_${i}`))
       }
     }
 
@@ -429,7 +429,7 @@ async function loadData() {
       // Star on the conversion line at optimal revenue price
       const matchConv = outcomes.find(o => Math.abs(o.price - c.optimal.revenue.price) < 0.001)
       if (matchConv) {
-        Object.assign(tradeoffAnnotations, makeStarAnnotations(c.optimal.revenue.price, matchConv.expectedConversion * 100, `$${c.optimal.revenue.price.toFixed(2)}`, col.border, col.glow, `trd_${i}`))
+        Object.assign(tradeoffAnnotations, makeStarAnnotations(c.optimal.revenue.price, matchConv.expectedConversion * 100, `$${(c.optimal.revenue.price < 0.01 ? c.optimal.revenue.price.toFixed(3) : c.optimal.revenue.price.toFixed(2))}`, col.border, col.glow, `trd_${i}`))
       }
     }
   })

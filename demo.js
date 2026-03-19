@@ -25,22 +25,24 @@ if (existsSync('./openprice.db')) unlinkSync('./openprice.db')
 
 // ── Server ───────────────────────────────────────────────────
 
+const CHEAP_WIDGETS = [
+  { id: 1, name: 'Basic Sprocket', tier: 'economy' },
+  { id: 2, name: 'Mini Gasket', tier: 'economy' },
+  { id: 3, name: 'Standard Bolt Pack', tier: 'economy' },
+]
+
 const WIDGETS = [
-  { id: 1, name: 'Quantum Flux Capacitor', color: 'iridescent' },
-  { id: 2, name: 'Nano Sprocket', color: 'chrome' },
-  { id: 3, name: 'Hyper Gasket', color: 'obsidian' },
-  { id: 4, name: 'Plasma Cog', color: 'cerulean' },
-  { id: 5, name: 'Titanium Widget Classic', color: 'gunmetal' },
+  { id: 1, name: 'Turbo Encabulator', tier: 'standard' },
+  { id: 2, name: 'Flux Compensator', tier: 'standard' },
+  { id: 3, name: 'Quantum Spanner', tier: 'standard' },
+  { id: 4, name: 'Photon Wrench', tier: 'standard' },
+  { id: 5, name: 'Nano Caliper', tier: 'standard' },
 ]
 
-const REPORTS = [
-  { id: 1, title: 'Q1 Widget Market Analysis', pages: 24 },
-  { id: 2, title: 'Supply Chain Optimization Brief', pages: 12 },
-]
-
-const ANALYSES = [
-  { id: 1, title: 'Full Portfolio Risk Assessment', depth: 'comprehensive' },
-  { id: 2, title: 'Demand Forecasting Model Output', depth: 'detailed' },
+const FANCY_WIDGETS = [
+  { id: 1, name: 'Platinum Encabulator Pro', tier: 'premium' },
+  { id: 2, name: 'Diamond-Tipped Flux Array', tier: 'premium' },
+  { id: 3, name: 'Antimatter Spanner Elite', tier: 'premium' },
 ]
 
 const app = new Hono()
@@ -56,30 +58,30 @@ const mppx = Mppx.create({
 
 const openprice = withOpenPrice(mppx, { token: process.env.OPENPRICE_TOKEN })
 
-app.get('/', (c) => c.json({ service: 'Test Widgets, Inc.', dashboard: '/openprice' }))
+app.get('/', (c) => c.json({ service: 'Widgets, Inc.', dashboard: '/openprice' }))
 
-app.get('/api/widget', openprice.charge({
-  amount: '0.10', description: 'Random Widget',
-  range: [0.01, 0.50], strategy: 'uniform',
+app.get('/api/cheap-widgets', openprice.charge({
+  amount: '0.01', description: 'Cheap widget',
+  range: [0.001, 0.05], strategy: 'uniform',
+}), (c) => {
+  const w = CHEAP_WIDGETS[Math.floor(Math.random() * CHEAP_WIDGETS.length)]
+  return c.json({ widget: { ...w, price_paid: c.get('openprice.amount') } })
+})
+
+app.get('/api/widgets', openprice.charge({
+  amount: '0.05', description: 'Widget',
+  range: [0.01, 0.25], strategy: 'uniform',
 }), (c) => {
   const w = WIDGETS[Math.floor(Math.random() * WIDGETS.length)]
   return c.json({ widget: { ...w, price_paid: c.get('openprice.amount') } })
 })
 
-app.get('/api/report', openprice.charge({
-  amount: '0.50', description: 'Market Report',
-  range: [0.05, 2.00], strategy: 'skew-low',
+app.get('/api/fancy-widgets', openprice.charge({
+  amount: '0.10', description: 'Fancy widget',
+  range: [0.02, 0.50], strategy: 'uniform',
 }), (c) => {
-  const r = REPORTS[Math.floor(Math.random() * REPORTS.length)]
-  return c.json({ report: { ...r, price_paid: c.get('openprice.amount') } })
-})
-
-app.get('/api/analysis', openprice.charge({
-  amount: '1.00', description: 'Premium Analysis',
-  range: [0.25, 5.00], strategy: 'skew-high',
-}), (c) => {
-  const a = ANALYSES[Math.floor(Math.random() * ANALYSES.length)]
-  return c.json({ analysis: { ...a, price_paid: c.get('openprice.amount') } })
+  const w = FANCY_WIDGETS[Math.floor(Math.random() * FANCY_WIDGETS.length)]
+  return c.json({ widget: { ...w, price_paid: c.get('openprice.amount') } })
 })
 
 app.route('/openprice', openprice.routes())
@@ -111,9 +113,9 @@ serve({ fetch: app.fetch, port: PORT }, async (info) => {
   the demand curve in real-time.
 
   Endpoints & price ranges:
-    Random Widget      $0.01 – $0.50  (uniform)
-    Market Report      $0.05 – $2.00  (skew-low)
-    Premium Analysis   $0.25 – $5.00  (skew-high)
+    Cheap widget       $0.001 – $0.05  (uniform)
+    Widget             $0.01 – $0.25   (uniform)
+    Fancy widget       $0.02 – $0.50   (uniform)
 
   Dashboard: ${url}
 
@@ -144,9 +146,9 @@ serve({ fetch: app.fetch, port: PORT }, async (info) => {
 
   // ── Agent config ─────────────────────────────────────────
   const PRODUCTS = [
-    { path: '/api/widget',   key: 'widget',   min: 0.01, max: 0.50 },
-    { path: '/api/report',   key: 'report',   min: 0.05, max: 2.00 },
-    { path: '/api/analysis', key: 'analysis', min: 0.25, max: 5.00 },
+    { path: '/api/cheap-widgets', key: 'cheap',  min: 0.001, max: 0.05 },
+    { path: '/api/widgets',       key: 'widget', min: 0.01,  max: 0.25 },
+    { path: '/api/fancy-widgets', key: 'fancy',  min: 0.02,  max: 0.50 },
   ]
 
   const AGENT_COUNT = 100
