@@ -122,6 +122,15 @@ npx github:tldr-wknd/openprice test
 
 This starts their server in testnet mode (no real money), runs 100 simulated agents, and opens the dashboard so they can see the demand curves build in real-time.
 
+## After Testing
+
+When the user confirms the test results look good, guide them to production:
+
+1. **No code changes needed.** The OpenPrice middleware works identically on mainnet. The only difference is the `OPENPRICE_TESTNET` env var — in production, it's not set, so Tempo runs on mainnet with real payments.
+2. **Deploy as normal.** However they usually deploy their server, they deploy it. OpenPrice is just middleware — it ships with the server.
+3. **Real agent traffic builds real curves.** The demand curves from testing were simulated. In production, actual agents with real willingness-to-pay generate the data. After ~1,000 real requests, the ★ optimal price reflects true market demand.
+4. **They can narrow ranges later.** Once the initial curves show a clear peak, suggest tightening the price range around the ★ for more precise optimization.
+
 ---
 
 ## Endpoint Examples

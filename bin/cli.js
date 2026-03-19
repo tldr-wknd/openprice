@@ -395,6 +395,13 @@ async function runTest() {
 
   const relServer = serverFile.replace(cwd + '/', '')
 
+  // Clean slate — remove old test data
+  const dbPath = join(cwd, 'openprice.db')
+  if (existsSync(dbPath)) {
+    const { unlinkSync } = await import('fs')
+    unlinkSync(dbPath)
+  }
+
   console.log(`
   ╔═══════════════════════════════════════════════════════════════╗
   ║  Open★Price — Dev Test                                       ║
