@@ -1,8 +1,21 @@
 import { Mppx, tempo } from 'mppx/client'
 import { resolveAccount } from 'mppx/cli'
+import { execSync } from 'child_process'
 
-const account = await resolveAccount('buyer')
-console.log(`Agent fleet using account: ${account.address}`)
+// Auto-setup: create and fund a demo account if it doesn't exist
+const DEMO_ACCOUNT = '_openprice_demo_'
+let account
+try {
+  account = await resolveAccount(DEMO_ACCOUNT)
+  console.log(`Using existing demo wallet: ${account.address}`)
+} catch {
+  console.log('Setting up demo wallet (one-time)...')
+  execSync(`npx mppx account create --account ${DEMO_ACCOUNT}`, { stdio: 'pipe' })
+  execSync(`npx mppx account fund --account ${DEMO_ACCOUNT}`, { stdio: 'inherit' })
+  account = await resolveAccount(DEMO_ACCOUNT)
+  console.log(`Demo wallet ready: ${account.address}`)
+}
+console.log()
 
 const SERVER = 'http://localhost:3000'
 const AGENT_COUNT = 100
@@ -56,7 +69,7 @@ for (const p of PRODUCTS) {
   productStats[p.key] = { requests: 0, paid: 0, skipped: 0, revenue: 0 }
 }
 
-console.log(`\nStarting batch: ${AGENT_COUNT} agents x ${REQUESTS_PER_AGENT} requests = ${AGENT_COUNT * REQUESTS_PER_AGENT} total`)
+console.log(`Starting batch: ${AGENT_COUNT} agents x ${REQUESTS_PER_AGENT} requests = ${AGENT_COUNT * REQUESTS_PER_AGENT} total`)
 console.log(`Agent willingness range per product:`)
 console.log(`  widget:   $${AGENTS[0].maxPrice.widget.toFixed(2)} – $${AGENTS[AGENT_COUNT-1].maxPrice.widget.toFixed(2)}`)
 console.log(`  report:   $${AGENTS[0].maxPrice.report.toFixed(2)} – $${AGENTS[AGENT_COUNT-1].maxPrice.report.toFixed(2)}`)

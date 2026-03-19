@@ -15,7 +15,7 @@ OpenPrice is middleware for [MPP](https://mpp.dev) (Machine Payments Protocol) t
 
 ~1,000 requests → you know your optimal price.
 
-## Quick start
+## Demo
 
 ```bash
 git clone https://github.com/tldr-wknd/openprice.git
@@ -24,24 +24,15 @@ npm install
 node server.js
 ```
 
-Open **http://localhost:3000/openprice/testnet** to see the demo dashboard with pre-loaded data from 100 simulated agents.
-
-### Run your own experiment
+In a second terminal:
 
 ```bash
-# Create and fund a testnet wallet (pick any name)
-npx mppx account create --account my-agent
-npx mppx account fund --account my-agent
-
-# Start the server
-node server.js
-
-# Run 1,000 requests from 100 agents with different price preferences
 node agent-100.js
-
-# Watch the dashboard update in real-time
-open http://localhost:3000/openprice
 ```
+
+This auto-creates a funded testnet wallet and fires 1,000 requests from 100 simulated agents — each with different price preferences. Open **http://localhost:3000/openprice** and watch the demand curve build in real-time.
+
+> A pre-loaded version with completed data is at **http://localhost:3000/openprice/testnet** for comparison.
 
 ## Add OpenPrice to your MPP server
 
