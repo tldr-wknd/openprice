@@ -29,9 +29,9 @@ Open **http://localhost:3000/openprice/testnet** to see the demo dashboard with 
 ### Run your own experiment
 
 ```bash
-# Create and fund a testnet wallet
-npx mppx account create
-npx mppx account fund
+# Create and fund a testnet wallet (pick any name)
+npx mppx account create --account my-agent
+npx mppx account fund --account my-agent
 
 # Start the server
 node server.js
