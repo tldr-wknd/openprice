@@ -1,6 +1,6 @@
 # Open★Price
 
-**Price discovery for the agent economy.**
+**Discover perfect pricing in the agent economy.**
 
 With human customers, you can't A/B test prices — it's unethical, often illegal, and destroys trust. But agents don't care. They see a price, make a rational buy/don't-buy decision, and move on. No outrage, no churn risk, no brand damage.
 
@@ -15,7 +15,9 @@ OpenPrice is middleware for [MPP](https://mpp.dev) (Machine Payments Protocol) t
 
 ~1,000 requests → you know your optimal price.
 
-## Demo
+## Quick demo
+
+See OpenPrice in action with a pre-built example server and 100 simulated agents:
 
 ```bash
 git clone https://github.com/tldr-wknd/openprice.git
@@ -24,11 +26,26 @@ npm install
 node demo.js
 ```
 
-That's it. This starts the server, opens the dashboard in your browser, and fires 1,000 requests from 100 simulated agents with different price preferences. Watch the demand curve build in real-time.
+This starts a demo server, opens the dashboard in your browser, and fires 1,000 requests from 100 agents with different price preferences. Watch the demand curve build in real-time.
 
-> A pre-loaded version with completed data is at **http://localhost:3000/openprice/testnet** for comparison.
+> A pre-loaded version with completed data is at `http://localhost:3000/openprice/testnet`
 
-## Add OpenPrice to your MPP server
+## Add OpenPrice to your server
+
+### Step 1 — Install
+
+From your MPP server's root directory:
+
+```bash
+npx github:tldr-wknd/openprice init
+```
+
+This scans your codebase for `mppx.charge()` calls, copies the OpenPrice library, installs dependencies, and shows you exactly what code to change. Two options:
+
+1. **Auto-install** — applies default price ranges and shows you the code changes to make
+2. **Agent-guided** — drops a skill file your coding agent can follow
+
+### Step 2 — Update your code
 
 ```diff
   import { Mppx, tempo } from 'mppx/hono'
@@ -42,11 +59,19 @@ That's it. This starts the server, opens the dashboard in your browser, and fire
 + app.route('/openprice', openprice.routes())
 ```
 
-Or run the CLI:
+### Step 3 — Test in dev
+
+Before going to production, validate your price ranges with simulated agents on testnet:
 
 ```bash
-npx openprice init
+npx github:tldr-wknd/openprice test
 ```
+
+This starts your server, creates a funded testnet wallet, and runs 100 agents against your endpoints — each with a different willingness to pay. The dashboard opens automatically so you can watch the demand curves build.
+
+Review the ★ optimal prices. Adjust your ranges if needed. When you're confident, deploy to production.
+
+> **Testnet vs production:** The OpenPrice middleware is identical in both environments. The only difference is the `testnet: true` flag in your Tempo config, which you already control. No code changes needed to go live.
 
 ## Dashboard
 
