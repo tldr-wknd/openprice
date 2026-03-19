@@ -580,25 +580,14 @@ fetch(`${API_BASE}/api/agents`).then(r => {
   `).join('')
 }).catch(() => {})
 
-let pollTimer = null
-let failCount = 0
+// Live updates via SSE — no polling, no flashing
+loadData()
 
-async function poll() {
-  try {
-    await loadData()
-    failCount = 0
-  } catch {
-    failCount++
-    if (failCount >= 2) {
-      clearInterval(pollTimer)
-      pollTimer = null
-      return
-    }
-  }
+const evtSource = new EventSource(`${API_BASE}/api/events`)
+evtSource.onmessage = () => loadData()
+evtSource.onerror = () => {
+  evtSource.close()
 }
-
-poll()
-pollTimer = setInterval(poll, 5000)
 </script>
 </body>
 </html>

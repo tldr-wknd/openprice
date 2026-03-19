@@ -118,6 +118,15 @@ export function withOpenPrice(mppx, opts = {}) {
     'INSERT INTO payments (challenge_id, endpoint, amount, timestamp) VALUES (?, ?, ?, ?)'
   )
 
+  // SSE clients
+  const sseClients = new Set()
+
+  function notifyClients() {
+    for (const send of sseClients) {
+      try { send() } catch { sseClients.delete(send) }
+    }
+  }
+
   // Price pinning cache
   const priceCache = new Map()
   const PRICE_TTL = 5 * 60 * 1000
@@ -135,6 +144,7 @@ export function withOpenPrice(mppx, opts = {}) {
     const result = insertChallenge.run(endpoint, price, now, ip, ua)
     const entry = { price, timestamp: now, challengeRowId: result.lastInsertRowid }
     priceCache.set(key, entry)
+    notifyClients()
     return entry
   }
 
@@ -182,6 +192,7 @@ export function withOpenPrice(mppx, opts = {}) {
         insertPayment.run(challengeRowId, endpoint, randomPrice, Date.now())
         c.set('openprice.amount', randomPrice)
         priceCache.delete(pinKey)
+        notifyClients()
       }
 
       if (response) return response
@@ -287,6 +298,33 @@ export function withOpenPrice(mppx, opts = {}) {
       const html = readFileSync(join(__dirname, 'dashboard.html'), 'utf-8')
       c.header('Cache-Control', 'no-store')
       return c.html(html)
+    })
+
+    app.get('/api/events', (c) => {
+      return c.body(
+        new ReadableStream({
+          start(controller) {
+            const encoder = new TextEncoder()
+            const send = () => {
+              try { controller.enqueue(encoder.encode('data: update\n\n')) } catch {}
+            }
+            // Send initial ping so client knows connection is live
+            send()
+            sseClients.add(send)
+            // Clean up on close
+            c.req.raw.signal?.addEventListener('abort', () => {
+              sseClients.delete(send)
+            })
+          },
+        }),
+        {
+          headers: {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive',
+          },
+        }
+      )
     })
 
     app.get('/api/agents', (c) => {
