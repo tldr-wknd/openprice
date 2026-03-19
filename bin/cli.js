@@ -38,8 +38,15 @@ async function runInit() {
   const cwd = process.cwd()
 
   console.log(`
-  Open★Price — Setup
-  ──────────────────
+  ╔═══════════════════════════════════════════════════════════════╗
+  ║  Open★Price — Setup                                          ║
+  ╚═══════════════════════════════════════════════════════════════╝
+
+  What is OpenPrice?
+  OpenPrice helps MPP service providers discover their optimal price.
+  Instead of guessing what to charge, you test a range of prices and
+  let agent behavior reveal the demand curve. ~1,000 requests and
+  you know exactly what to charge.
 
   Scanning for MPP endpoints...
 `)
@@ -60,8 +67,18 @@ async function runInit() {
   }
 
   if (endpoints.length === 0) {
-    console.log('  No mppx.charge() calls found. Is this an MPP server?')
-    console.log('  Make sure you\'re running this from your server\'s root directory.')
+    console.log(`  No mppx.charge() calls found.
+
+  OpenPrice needs to run inside an MPP server directory — the one
+  with your mppx.charge() endpoints.
+
+  Make sure you're in the right directory:
+    cd your-mpp-server/
+    npx github:tldr-wknd/openprice init
+
+  Don't have an MPP server yet? Run the demo to see OpenPrice in action:
+    npx github:tldr-wknd/openprice demo
+`)
     process.exit(1)
   }
 
@@ -167,26 +184,15 @@ async function autoInstall(cwd, endpoints) {
 // ── Skill file instructions ─────────────────────────────────────
 
 async function showSkillFileInstructions() {
+  const cwd = process.cwd()
   const skillUrl = 'https://github.com/tldr-wknd/openprice/blob/main/openprice/skill.md'
 
   console.log(`
   Give this to your coding agent (Claude Code, Cursor, etc.):
 
     "Follow the instructions at ${skillUrl}
-     to add OpenPrice to this project."
+     to add OpenPrice to the project in ${cwd}"
 `)
-  } else {
-    console.log(`
-  Give your agent this URL:
-
-    https://github.com/tldr-wknd/openprice/blob/main/openprice/skill.md
-
-  Tell it:
-
-    "Follow the instructions in that skill file to add OpenPrice
-     to this project."
-`)
-  }
 }
 
 // ── Helpers ──────────────────────────────────────────────────────
@@ -311,7 +317,11 @@ async function runTest() {
   }
 
   if (endpoints.length === 0) {
-    console.log('\n  No mppx.charge() calls found. Run `openprice init` first.\n')
+    console.log(`
+  No paid endpoints found. Run this from your MPP server directory:
+    cd your-mpp-server/
+    npx github:tldr-wknd/openprice init
+`)
     process.exit(1)
   }
 

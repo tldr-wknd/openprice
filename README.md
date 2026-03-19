@@ -30,20 +30,23 @@ This starts a demo server, opens the dashboard in your browser, and fires 1,000 
 
 > A pre-loaded version with completed data is at `http://localhost:3000/openprice/testnet`
 
-## Add OpenPrice to your server
+## Add OpenPrice to your MPP server
+
+> **Prerequisite:** You need an existing MPP server with `mppx.charge()` endpoints. Run the command below from your server's root directory (where `package.json` lives). Don't have one yet? Run the [quick demo](#quick-demo) first to see how OpenPrice works.
 
 ### Step 1 — Install
 
 From your MPP server's root directory:
 
 ```bash
+cd your-mpp-server/
 npx github:tldr-wknd/openprice init
 ```
 
 This scans your codebase for `mppx.charge()` calls, copies the OpenPrice library, installs dependencies, and shows you exactly what code to change. Two options:
 
-1. **Auto-install** — applies default price ranges and shows you the code changes to make
-2. **Agent-guided** — drops a skill file your coding agent can follow
+1. **Agent-guided** — gives you a prompt to paste into your coding agent (Claude Code, Cursor, etc.)
+2. **Manual** — shows the exact code changes to make yourself
 
 ### Step 2 — Update your code
 
