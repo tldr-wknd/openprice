@@ -528,7 +528,15 @@ async function runTest() {
 
   Your demand curves are live at ${dashUrl}
   Review the ★ optimal prices, then deploy to production with confidence.
-
-  Press Ctrl+C to stop the server.
 `)
+
+  // Keep server alive for dashboard viewing, clean exit on Ctrl+C
+  process.on('SIGINT', () => {
+    serverProc.kill()
+    process.exit(0)
+  })
+  process.on('SIGTERM', () => {
+    serverProc.kill()
+    process.exit(0)
+  })
 }
