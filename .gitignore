@@ -1,0 +1,9 @@
+node_modules/
+.env
+openprice.db
+openprice.db-shm
+openprice.db-wal
+price-menu.db-shm
+price-menu.db-wal
+*.db-shm
+*.db-wal

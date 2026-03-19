@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenPrice</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+  :root {
+    --bg: #fafafa;
+    --surface: #ffffff;
+    --border: rgba(0,0,0,0.06);
+    --text-primary: #1d1d1f;
+    --text-secondary: #86868b;
+    --text-tertiary: #aeaeb2;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
+    --radius: 16px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    padding: 48px;
+    max-width: 1400px;
+    margin: 0 auto;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .hero { margin-bottom: 48px; }
+  .logo-mark {
+    display: inline-block;
+    font-size: 72px;
+    font-weight: 800;
+    letter-spacing: -3px;
+    line-height: 1;
+    background: linear-gradient(135deg, #1d1d1f 0%, #1d1d1f 40%, #86868b 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .logo-mark span { font-weight: 300; letter-spacing: -1px; }
+  .logo-star {
+    color: #FFC300;
+    font-size: 12px;
+    filter: drop-shadow(0 0 3px rgba(255,195,0,0.4));
+  }
+  .logo-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .service-tag {
+    display: inline-flex; align-items: center; padding: 8px 9px;
+    border-radius: 12px; background: var(--surface); border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm); font-size: 13px; font-weight: 500;
+    color: var(--text-primary); letter-spacing: -0.1px; margin-top: 10px;
+  }
+  .tagline { font-size: 19px; font-weight: 400; color: var(--text-secondary); letter-spacing: -0.2px; }
+
+  .controls-row { display: flex; align-items: stretch; gap: 16px; margin-bottom: 32px; }
+
+  .endpoint-tabs {
+    display: flex; gap: 4px; background: rgba(0,0,0,0.03);
+    border-radius: 12px; padding: 3px; flex-shrink: 0; align-items: center;
+  }
+  .ep-tab {
+    padding: 10px 18px; border-radius: 9px; border: none; background: transparent;
+    color: var(--text-secondary); cursor: pointer; font-size: 13px; font-weight: 500;
+    font-family: inherit; transition: all 0.2s ease;
+  }
+  .ep-tab:hover { color: var(--text-primary); }
+  .ep-tab.active { background: var(--surface); color: var(--text-primary); box-shadow: var(--shadow-sm); }
+
+  .summary-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px 24px; box-shadow: var(--shadow-sm); display: flex; gap: 32px;
+    align-items: center; flex: 1; min-width: 0;
+  }
+  .summary-item { display: flex; align-items: baseline; gap: 6px; white-space: nowrap; }
+  .summary-label { font-size: 12px; font-weight: 500; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.3px; }
+  .summary-value { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; color: var(--text-primary); }
+
+  .chart-row { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 16px; }
+  .chart-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 32px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; box-shadow: var(--shadow-sm); }
+  .card h2 { font-size: 15px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+  .card .chart-subtitle { font-size: 12px; color: var(--text-secondary); margin-bottom: 16px; }
+  .chart-container { position: relative; height: 300px; }
+  .chart-container-lg { position: relative; height: 340px; }
+
+  .log-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-sm); overflow: hidden; }
+  .log-header { padding: 20px 28px; border-bottom: 1px solid var(--border); }
+  .log-header h2 { font-size: 15px; font-weight: 600; color: var(--text-primary); }
+  .log-body { max-height: 420px; overflow-y: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    text-align: left; padding: 10px 28px; font-size: 11px; font-weight: 500;
+    color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.3px;
+    border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--surface);
+  }
+  td { padding: 10px 28px; font-size: 13px; color: var(--text-secondary); border-bottom: 1px solid var(--border); }
+  tr:last-child td { border-bottom: none; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; letter-spacing: 0.2px; }
+  .badge.paid { background: #e8faf0; color: #1a7f37; }
+  .badge.skipped { background: #fff0f0; color: #cf222e; }
+  td.price-col { font-variant-numeric: tabular-nums; font-weight: 500; color: var(--text-primary); }
+  td.agent-col { color: var(--text-tertiary); font-size: 12px; }
+  .hazard { color: var(--text-tertiary); margin-left: 6px; font-size: 13px; cursor: default; }
+
+  /* Agent profiles */
+  .agents-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    box-shadow: var(--shadow-sm); overflow: hidden; margin-top: 16px;
+  }
+  .agents-header { padding: 20px 28px; border-bottom: 1px solid var(--border); }
+  .agents-header h2 { font-size: 15px; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
+  .agents-header p { font-size: 12px; color: var(--text-secondary); }
+  .agents-body { max-height: 400px; overflow-y: auto; }
+  .agents-body table th { font-size: 10px; }
+  .agents-body table td { font-size: 12px; font-variant-numeric: tabular-nums; }
+  .agents-body .agent-id { font-weight: 500; color: var(--text-primary); font-size: 11px; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="logo-row">
+    <div class="logo-mark">Open<span>Price</span></div>
+    <span class="service-tag" id="serviceName"></span>
+  </div>
+  <p class="tagline">Discover perfect pricing in the agent economy.</p>
+</div>
+
+<div class="controls-row">
+  <div class="endpoint-tabs" id="endpointTabs"></div>
+  <div class="summary-card" id="stats"></div>
+</div>
+
+<div class="chart-row">
+  <div class="card">
+    <h2>Projected Revenue</h2>
+    <p class="chart-subtitle">Expected revenue per 1,000 requests</p>
+    <div class="chart-container-lg"><canvas id="revenueChart"></canvas></div>
+  </div>
+</div>
+
+<div class="chart-row-2">
+  <div class="card">
+    <h2>Demand Curve</h2>
+    <p class="chart-subtitle">Expected conversion at each price</p>
+    <div class="chart-container"><canvas id="demandChart"></canvas></div>
+  </div>
+  <div class="card">
+    <h2>Adoption vs Revenue</h2>
+    <p class="chart-subtitle">How usage and revenue trade off as price changes</p>
+    <div class="chart-container"><canvas id="tradeoffChart"></canvas></div>
+  </div>
+</div>
+
+<div class="log-card">
+  <div class="log-header"><h2>Activity</h2></div>
+  <div class="log-body">
+    <table id="logTable">
+      <thead><tr><th>Time</th><th>Endpoint</th><th>Price</th><th>Outcome</th><th>Agent</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="agents-card" id="agentsCard" style="display:none">
+  <div class="agents-header">
+    <h2>Agent Profiles</h2>
+    <p id="agentsDescription"></p>
+  </div>
+  <div class="agents-body">
+    <table id="agentsTable">
+      <thead><tr><th>Agent</th><th>Widget Max</th><th>Report Max</th><th>Analysis Max</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+// Color palette — electric / neon / clean
+const PRODUCT_COLORS = [
+  { border: '#6A82FB', bg: 'rgba(106, 130, 251, 0.10)', glow: 'rgba(106, 130, 251, 0.5)' },
+  { border: '#FF6EC7', bg: 'rgba(255, 110, 199, 0.10)', glow: 'rgba(255, 110, 199, 0.5)' },
+  { border: '#00F2FE', bg: 'rgba(0, 242, 254, 0.10)',   glow: 'rgba(0, 242, 254, 0.5)' },
+  { border: '#C471F5', bg: 'rgba(196, 113, 245, 0.10)', glow: 'rgba(196, 113, 245, 0.5)' },
+  { border: '#FF9A8B', bg: 'rgba(255, 154, 139, 0.10)', glow: 'rgba(255, 154, 139, 0.5)' },
+]
+
+let demandChart, revenueChart, tradeoffChart
+let currentEndpoint = null
+
+Chart.defaults.font.family = "'Inter', -apple-system, system-ui, sans-serif"
+Chart.defaults.font.size = 11
+
+// --- Custom tooltip (external HTML) ---
+function getOrCreateTooltipEl(chart) {
+  let el = chart.canvas.parentNode.querySelector('.op-tooltip')
+  if (!el) {
+    el = document.createElement('div')
+    el.classList.add('op-tooltip')
+    el.style.cssText = `
+      position: absolute; pointer-events: none; z-index: 10;
+      background: rgba(255,255,255,0.96); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(0,0,0,0.08); border-radius: 14px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
+      padding: 14px 18px; font-family: Inter, -apple-system, system-ui, sans-serif;
+      transition: opacity 0.15s ease, transform 0.15s ease;
+      opacity: 0; transform: translateY(4px);
+      min-width: 180px; max-width: 320px;
+    `
+    chart.canvas.parentNode.appendChild(el)
+  }
+  return el
+}
+
+function externalTooltipHandler(context, formatLine) {
+  const { chart, tooltip } = context
+  const el = getOrCreateTooltipEl(chart)
+
+  if (tooltip.opacity === 0) {
+    el.style.opacity = '0'
+    el.style.transform = 'translateY(4px)'
+    return
+  }
+
+  const dataPoint = tooltip.dataPoints?.[0]
+  if (!dataPoint) return
+
+  const price = dataPoint.raw.x
+
+  // Title: the price
+  let html = `<div style="font-size:13px;font-weight:700;color:#1d1d1f;margin-bottom:8px;letter-spacing:-0.3px">
+    $${price.toFixed(2)} <span style="font-weight:400;color:#86868b;font-size:11px">per request</span>
+  </div>`
+
+  // Each dataset at this index
+  tooltip.dataPoints.forEach(dp => {
+    const color = dp.dataset.borderColor
+    const label = dp.dataset.label
+    const formatted = formatLine(dp, label)
+    if (!formatted) return
+    html += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:12px">
+      <span style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0;box-shadow:0 0 6px ${color}40"></span>
+      <span style="color:#1d1d1f;font-weight:500">${formatted.name}</span>
+      <span style="color:#86868b;margin-left:auto;font-variant-numeric:tabular-nums;font-weight:600">${formatted.value}</span>
+    </div>`
+  })
+
+  el.innerHTML = html
+  el.style.opacity = '1'
+  el.style.transform = 'translateY(0)'
+
+  const pos = chart.canvas.getBoundingClientRect()
+  const tooltipWidth = el.offsetWidth
+  let left = tooltip.caretX + 16
+  if (left + tooltipWidth > pos.width) left = tooltip.caretX - tooltipWidth - 16
+  el.style.left = left + 'px'
+  el.style.top = (tooltip.caretY - el.offsetHeight / 2) + 'px'
+}
+
+// --- Optimal price annotation: ★ character + vertical drop line ---
+function makeStarAnnotations(price, value, labelText, color, glowColor, idx) {
+  const annotations = {}
+  // Vertical line from point down to x-axis
+  annotations[`line_${idx}`] = {
+    type: 'line',
+    xMin: price, xMax: price,
+    yMin: 0, yMax: value,
+    borderColor: 'rgba(255, 195, 0, 0.4)',
+    borderWidth: 1.5,
+    borderDash: [4, 4],
+  }
+  // The ★ character as a label
+  annotations[`star_${idx}`] = {
+    type: 'label',
+    xValue: price, yValue: value,
+    content: '\u2605',
+    color: '#FFC300',
+    font: { size: 22, weight: 400 },
+    backgroundColor: 'transparent',
+    padding: 0,
+  }
+  return annotations
+}
+
+// Derive API base from current page path (works from /openprice or /openprice/testnet)
+const API_BASE = window.location.pathname.replace(/\/$/, '')
+
+async function loadData() {
+  const q = currentEndpoint ? `?endpoint=${encodeURIComponent(currentEndpoint)}` : ''
+  const logQ = currentEndpoint ? `?endpoint=${encodeURIComponent(currentEndpoint)}&limit=200` : '?limit=200'
+  const [dataRes, logRes] = await Promise.all([
+    fetch(`${API_BASE}/api/data${q}`),
+    fetch(`${API_BASE}/api/log${logQ}`)
+  ])
+  const data = await dataRes.json()
+  const log = await logRes.json()
+
+  // Tabs
+  const tabsEl = document.getElementById('endpointTabs')
+  tabsEl.innerHTML = `<div class="ep-tab ${!currentEndpoint ? 'active' : ''}" onclick="selectEndpoint(null)">All</div>`
+    + data.endpoints.map(ep =>
+      `<div class="ep-tab ${currentEndpoint === ep ? 'active' : ''}" onclick="selectEndpoint('${ep}')">${ep}</div>`
+    ).join('')
+
+  const isAll = !currentEndpoint
+  const curveKeys = isAll ? Object.keys(data.curves) : [currentEndpoint]
+  const curves = curveKeys.map(k => data.curves[k]).filter(Boolean)
+
+  if (curves.length === 0) {
+    document.getElementById('stats').innerHTML = `<div class="summary-item"><span class="summary-label">Status</span><span class="summary-value">Waiting for data</span></div>`
+    return
+  }
+
+  // Summary
+  const totalRequests = curves.reduce((s, c) => s + c.summary.totalRequests, 0)
+  const totalPayments = curves.reduce((s, c) => s + c.summary.totalPayments, 0)
+  const totalRevenue = curves.reduce((s, c) => s + c.summary.totalRevenue, 0)
+  const overallConversion = totalRequests > 0 ? totalPayments / totalRequests : 0
+
+  document.getElementById('stats').innerHTML = `
+    <div class="summary-item"><span class="summary-label">Requests</span><span class="summary-value">${totalRequests.toLocaleString()}</span></div>
+    <div class="summary-item"><span class="summary-label">Payments</span><span class="summary-value">${totalPayments.toLocaleString()}</span></div>
+    <div class="summary-item"><span class="summary-label">Conversion</span><span class="summary-value">${(overallConversion * 100).toFixed(1)}%</span></div>
+    <div class="summary-item"><span class="summary-label">Revenue</span><span class="summary-value">$${totalRevenue.toFixed(2)}</span></div>
+  `
+
+  if (demandChart) demandChart.destroy()
+  if (revenueChart) revenueChart.destroy()
+  if (tradeoffChart) tradeoffChart.destroy()
+
+  const baseOpts = {
+    responsive: true,
+    maintainAspectRatio: false,
+    layout: { padding: { top: 20 } },
+    clip: false,
+    plugins: {
+      legend: { display: isAll, position: 'top', align: 'end', labels: { color: '#86868b', font: { size: 11, weight: 500 }, boxWidth: 12, boxHeight: 2, padding: 16, usePointStyle: false } },
+      tooltip: { enabled: false },
+    },
+    scales: {
+      x: { type: 'linear', ticks: { color: '#aeaeb2', maxRotation: 0, maxTicksLimit: 10, font: { size: 11 }, callback: v => '$' + v.toFixed(2) }, grid: { color: 'rgba(0,0,0,0.03)' }, border: { display: false }, title: { display: true, text: 'Price', color: '#aeaeb2', font: { size: 11 } } },
+      y: { ticks: { color: '#aeaeb2', font: { size: 11 } }, grid: { color: 'rgba(0,0,0,0.03)' }, border: { display: false } }
+    },
+    elements: { line: { borderWidth: 2.5 }, point: { radius: 0, hoverRadius: 6, hoverBorderWidth: 2, hoverBackgroundColor: '#fff' } },
+    interaction: { intersect: false, mode: 'index' }
+  }
+
+  // Build datasets and annotations
+  const revenueDatasets = []
+  let revenueAnnotations = {}
+  const demandDatasets = []
+  let demandAnnotations = {}
+  const tradeoffConversionDatasets = []
+  const tradeoffRevenueDatasets = []
+  let tradeoffAnnotations = {}
+
+  curveKeys.forEach((key, i) => {
+    const c = data.curves[key]
+    if (!c) return
+    const colorIdx = isAll ? i : data.endpoints.indexOf(key)
+    const col = PRODUCT_COLORS[(colorIdx >= 0 ? colorIdx : i) % PRODUCT_COLORS.length]
+    const outcomes = c.outcomes
+
+    // Chart 1: Projected Revenue per 1,000
+    revenueDatasets.push({
+      label: key,
+      data: outcomes.map(o => ({ x: o.price, y: o.projectedRevenuePer1000 })),
+      borderColor: col.border,
+      backgroundColor: col.bg,
+      fill: true,
+      tension: 0.4,
+    })
+
+    if (c.optimal.revenue) {
+      const opt = c.optimal.revenue
+      const suffix = isAll ? ` ${key}` : ''
+      const label = `$${opt.price.toFixed(2)}${suffix}`
+      Object.assign(revenueAnnotations, makeStarAnnotations(opt.price, opt.revenuePer1000, label, col.border, col.glow, `rev_${i}`))
+    }
+
+    // Chart 2: Demand Curve (smoothed)
+    demandDatasets.push({
+      label: key,
+      data: outcomes.map(o => ({ x: o.price, y: o.expectedConversion * 100 })),
+      borderColor: col.border,
+      backgroundColor: col.bg,
+      fill: true,
+      tension: 0.4,
+    })
+
+    if (c.optimal.revenue) {
+      const opt = c.optimal.revenue
+      const matchingOutcome = outcomes.find(o => Math.abs(o.price - opt.price) < 0.001)
+      if (matchingOutcome) {
+        Object.assign(demandAnnotations, makeStarAnnotations(opt.price, matchingOutcome.expectedConversion * 100, `$${opt.price.toFixed(2)}`, col.border, col.glow, `dem_${i}`))
+      }
+    }
+
+    // Chart 3: Adoption vs Revenue (dual metric)
+    tradeoffConversionDatasets.push({
+      label: `${key} — Conversion`,
+      data: outcomes.map(o => ({ x: o.price, y: o.expectedConversion * 100 })),
+      borderColor: col.border,
+      backgroundColor: 'transparent',
+      borderDash: [6, 3],
+      fill: false,
+      tension: 0.4,
+      yAxisID: 'y',
+    })
+    tradeoffRevenueDatasets.push({
+      label: `${key} — Revenue`,
+      data: outcomes.map(o => ({ x: o.price, y: o.relativeRevenue * 100 })),
+      borderColor: col.border,
+      backgroundColor: col.bg,
+      fill: true,
+      tension: 0.4,
+      yAxisID: 'y',
+    })
+
+    if (c.optimal.revenue) {
+      // Star on the conversion line at optimal revenue price
+      const matchConv = outcomes.find(o => Math.abs(o.price - c.optimal.revenue.price) < 0.001)
+      if (matchConv) {
+        Object.assign(tradeoffAnnotations, makeStarAnnotations(c.optimal.revenue.price, matchConv.expectedConversion * 100, `$${c.optimal.revenue.price.toFixed(2)}`, col.border, col.glow, `trd_${i}`))
+      }
+    }
+  })
+
+  // Chart 1: Projected Revenue (hero)
+  revenueChart = new Chart(document.getElementById('revenueChart'), {
+    type: 'line',
+    data: { datasets: revenueDatasets },
+    options: {
+      ...baseOpts,
+      plugins: {
+        ...baseOpts.plugins,
+        annotation: { annotations: revenueAnnotations },
+        tooltip: {
+          enabled: false,
+          external: (ctx) => externalTooltipHandler(ctx, (dp, label) => ({
+            name: label,
+            value: `$${dp.raw.y.toFixed(0)} / 1k`,
+          })),
+        },
+      },
+      scales: {
+        ...baseOpts.scales,
+        y: { ...baseOpts.scales.y, title: { display: true, text: 'Revenue per 1,000 requests', color: '#aeaeb2', font: { size: 11 } }, ticks: { ...baseOpts.scales.y.ticks, callback: v => '$' + v.toFixed(0) } }
+      }
+    }
+  })
+
+  // Chart 2: Demand Curve
+  demandChart = new Chart(document.getElementById('demandChart'), {
+    type: 'line',
+    data: { datasets: demandDatasets },
+    options: {
+      ...baseOpts,
+      plugins: {
+        ...baseOpts.plugins,
+        annotation: { annotations: demandAnnotations },
+        tooltip: {
+          enabled: false,
+          external: (ctx) => externalTooltipHandler(ctx, (dp, label) => ({
+            name: label,
+            value: `${dp.raw.y.toFixed(0)}%`,
+          })),
+        },
+      },
+      scales: {
+        ...baseOpts.scales,
+        y: { ...baseOpts.scales.y, title: { display: true, text: 'Conversion (%)', color: '#aeaeb2', font: { size: 11 } }, ticks: { ...baseOpts.scales.y.ticks, callback: v => v + '%' }, min: 0 }
+      }
+    }
+  })
+
+  // Chart 3: Adoption vs Revenue
+  tradeoffChart = new Chart(document.getElementById('tradeoffChart'), {
+    type: 'line',
+    data: { datasets: [...tradeoffRevenueDatasets, ...tradeoffConversionDatasets] },
+    options: {
+      ...baseOpts,
+      plugins: {
+        ...baseOpts.plugins,
+        annotation: { annotations: tradeoffAnnotations },
+        legend: {
+          display: true, position: 'top', align: 'end',
+          labels: {
+            color: '#86868b', font: { size: 10, weight: 500 },
+            boxWidth: 12, boxHeight: 2, padding: 12,
+            filter: (item) => {
+              if (!isAll) return item.text.includes('Conversion') || item.text.includes('Revenue')
+              return true
+            }
+          }
+        },
+        tooltip: {
+          enabled: false,
+          external: (ctx) => externalTooltipHandler(ctx, (dp, label) => {
+            const isConv = label.includes('Conversion')
+            return {
+              name: isConv ? 'Conversion' : 'Revenue',
+              value: isConv ? `${dp.raw.y.toFixed(0)}%` : `${dp.raw.y.toFixed(0)}% of max`,
+            }
+          }),
+        },
+      },
+      scales: {
+        ...baseOpts.scales,
+        y: { ...baseOpts.scales.y, title: { display: true, text: '% of maximum', color: '#aeaeb2', font: { size: 11 } }, ticks: { ...baseOpts.scales.y.ticks, callback: v => v + '%' }, min: 0 }
+      }
+    }
+  })
+
+  // Activity log
+  const tbody = document.querySelector('#logTable tbody')
+  const rows = log.rows
+
+  const rapidSet = new Set()
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i]
+    const rTime = new Date(r.requestedAt).getTime()
+    for (let j = i + 1; j < rows.length; j++) {
+      const s = rows[j]
+      const sTime = new Date(s.requestedAt).getTime()
+      if (Math.abs(rTime - sTime) > 1000) break
+      if (r.userAgent === s.userAgent && r.endpoint === s.endpoint) {
+        rapidSet.add(i)
+        rapidSet.add(j)
+      }
+    }
+  }
+
+  tbody.innerHTML = rows.map((r, idx) => {
+    const isRapid = rapidSet.has(idx)
+    return `
+    <tr>
+      <td>${new Date(r.requestedAt).toLocaleTimeString()}</td>
+      <td style="font-weight:500;color:var(--text-primary)">${r.endpoint}</td>
+      <td class="price-col">$${parseFloat(r.amount).toFixed(4)}</td>
+      <td><span class="badge ${r.paid ? 'paid' : 'skipped'}">${r.paid ? 'Paid' : 'Skipped'}</span></td>
+      <td class="agent-col">${r.userAgent || 'unknown'}${isRapid ? '<span class="hazard" title="Same agent, same product within 1s">&#9888;</span>' : ''}</td>
+    </tr>
+  `}).join('')
+}
+
+function selectEndpoint(ep) { currentEndpoint = ep; loadData() }
+
+fetch('/').then(r => r.json()).then(d => {
+  document.getElementById('serviceName').innerHTML = '<span class="logo-star">★</span> ' + (d.service || 'Service')
+}).catch(() => {
+  document.getElementById('serviceName').innerHTML = '<span class="logo-star">★</span> Service'
+})
+
+// Load agent profiles if available
+fetch(`${API_BASE}/api/agents`).then(r => {
+  if (!r.ok) return
+  return r.json()
+}).then(data => {
+  if (!data || !data.agents) return
+  const card = document.getElementById('agentsCard')
+  card.style.display = ''
+  document.getElementById('agentsDescription').textContent = data.description || ''
+  const tbody = document.querySelector('#agentsTable tbody')
+  tbody.innerHTML = data.agents.map(a => `
+    <tr>
+      <td class="agent-id">${a.id}</td>
+      <td>$${a.maxPrice.widget.toFixed(2)}</td>
+      <td>$${a.maxPrice.report.toFixed(2)}</td>
+      <td>$${a.maxPrice.analysis.toFixed(2)}</td>
+    </tr>
+  `).join('')
+}).catch(() => {})
+
+loadData()
+setInterval(loadData, 5000)
+</script>
+</body>
+</html>
