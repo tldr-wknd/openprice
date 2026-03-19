@@ -209,8 +209,8 @@ async function showSkillFileInstructions() {
 // ── Helpers ──────────────────────────────────────────────────────
 
 function findFiles(dir, extensions, results = [], depth = 0) {
-  if (depth > 5) return results  // don't crawl too deep
-  const skip = ['node_modules', '.git', 'dist', 'build', '.next', '.claude']
+  if (depth > 3) return results  // server files are near the root
+  const skip = ['node_modules', '.git', 'dist', 'build', '.next', '.claude', 'openprice']
   try {
     for (const entry of readdirSync(dir)) {
       if (skip.includes(entry) || entry.startsWith('.')) continue
@@ -245,8 +245,8 @@ function extractChargeEndpoints(content, filePath, cwd) {
       if (lines[j].includes(')')) break
     }
 
-    // Extract amount
-    const amountMatch = block.match(/amount:\s*['"]([^'"]+)['"]/)
+    // Extract amount (must be a numeric value, not a template expression)
+    const amountMatch = block.match(/amount:\s*['"](\d+\.?\d*)['"]/)
     if (!amountMatch) continue
 
     // Extract description
