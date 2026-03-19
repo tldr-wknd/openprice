@@ -54,7 +54,18 @@ async function runInit() {
   // Find all .js and .ts files (skip node_modules, .git, dist)
   const files = findFiles(cwd, ['.js', '.ts', '.mjs', '.mts'])
   if (files.length === 0) {
-    console.log('  No JavaScript/TypeScript files found in this directory.')
+    console.log(`  No JavaScript/TypeScript files found in this directory.
+
+  OpenPrice needs to run inside an MPP server directory — the one
+  with your mppx.charge() endpoints.
+
+  Make sure you're in the right directory:
+    cd your-mpp-server/
+    npx github:tldr-wknd/openprice init
+
+  Don't have an MPP server yet? Run the demo to see OpenPrice in action:
+    npx github:tldr-wknd/openprice demo
+`)
     process.exit(1)
   }
 
@@ -197,16 +208,17 @@ async function showSkillFileInstructions() {
 
 // ── Helpers ──────────────────────────────────────────────────────
 
-function findFiles(dir, extensions, results = []) {
-  const skip = ['node_modules', '.git', 'dist', 'build', '.next']
+function findFiles(dir, extensions, results = [], depth = 0) {
+  if (depth > 5) return results  // don't crawl too deep
+  const skip = ['node_modules', '.git', 'dist', 'build', '.next', '.claude']
   try {
     for (const entry of readdirSync(dir)) {
-      if (skip.includes(entry)) continue
+      if (skip.includes(entry) || entry.startsWith('.')) continue
       const full = join(dir, entry)
       try {
         const stat = statSync(full)
         if (stat.isDirectory()) {
-          findFiles(full, extensions, results)
+          findFiles(full, extensions, results, depth + 1)
         } else if (extensions.some(ext => entry.endsWith(ext))) {
           results.push(full)
         }
