@@ -59,11 +59,11 @@ async function runInit() {
   OpenPrice needs to run inside an MPP server directory — the one
   with your mppx.charge() endpoints.
 
-  Make sure you're in the right directory:
+  ${bold('→ Have an MPP server?')}
     cd your-mpp-server/
     npx github:tldr-wknd/openprice init
 
-  Don't have an MPP server yet? Run the demo to see OpenPrice in action:
+  ${bold('→ New to MPP?')} Run the demo to see OpenPrice in action:
     npx github:tldr-wknd/openprice demo
 `)
     process.exit(1)
@@ -83,11 +83,11 @@ async function runInit() {
   OpenPrice needs to run inside an MPP server directory — the one
   with your mppx.charge() endpoints.
 
-  Make sure you're in the right directory:
+  ${bold('→ Have an MPP server?')}
     cd your-mpp-server/
     npx github:tldr-wknd/openprice init
 
-  Don't have an MPP server yet? Run the demo to see OpenPrice in action:
+  ${bold('→ New to MPP?')} Run the demo to see OpenPrice in action:
     npx github:tldr-wknd/openprice demo
 `)
     process.exit(1)
