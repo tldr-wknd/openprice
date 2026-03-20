@@ -122,9 +122,11 @@ export function withOpenPrice(mppx, opts = {}) {
   const sseClients = new Set()
 
   function notifyClients() {
-    for (const send of sseClients) {
-      try { send() } catch { sseClients.delete(send) }
-    }
+    try {
+      for (const send of sseClients) {
+        try { send() } catch { sseClients.delete(send) }
+      }
+    } catch {}
   }
 
   // Price pinning cache
@@ -301,30 +303,26 @@ export function withOpenPrice(mppx, opts = {}) {
     })
 
     app.get('/api/events', (c) => {
-      return c.body(
-        new ReadableStream({
-          start(controller) {
-            const encoder = new TextEncoder()
-            const send = () => {
-              try { controller.enqueue(encoder.encode('data: update\n\n')) } catch {}
-            }
-            // Send initial ping so client knows connection is live
-            send()
-            sseClients.add(send)
-            // Clean up on close
-            c.req.raw.signal?.addEventListener('abort', () => {
-              sseClients.delete(send)
-            })
-          },
-        }),
-        {
-          headers: {
-            'Content-Type': 'text/event-stream',
-            'Cache-Control': 'no-cache',
-            'Connection': 'keep-alive',
-          },
-        }
-      )
+      const stream = new ReadableStream({
+        start(controller) {
+          const encoder = new TextEncoder()
+          const send = () => {
+            try { controller.enqueue(encoder.encode('data: update\n\n')) } catch {}
+          }
+          send()
+          sseClients.add(send)
+          c.req.raw.signal?.addEventListener('abort', () => {
+            sseClients.delete(send)
+          })
+        },
+      })
+      return new Response(stream, {
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+        },
+      })
     })
 
     app.get('/api/agents', (c) => {
