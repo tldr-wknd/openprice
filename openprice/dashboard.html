@@ -177,7 +177,7 @@
   </div>
   <div class="agents-body">
     <table id="agentsTable">
-      <thead><tr><th>Agent</th><th>Widget Max</th><th>Report Max</th><th>Analysis Max</th></tr></thead>
+      <thead id="agentsHead"><tr><th>Agent</th></tr></thead>
       <tbody></tbody>
     </table>
   </div>
@@ -573,17 +573,19 @@ fetch(`${API_BASE}/api/agents`).then(r => {
   if (!r.ok) return
   return r.json()
 }).then(data => {
-  if (!data || !data.agents) return
+  if (!data || !data.agents || !data.agents.length) return
   const card = document.getElementById('agentsCard')
   card.style.display = ''
   document.getElementById('agentsDescription').textContent = data.description || ''
+  // Build dynamic columns from agent maxPrice keys
+  const keys = Object.keys(data.agents[0].maxPrice)
+  const thead = document.getElementById('agentsHead')
+  thead.innerHTML = `<tr><th>Agent</th>${keys.map(k => `<th>${k} Max</th>`).join('')}</tr>`
   const tbody = document.querySelector('#agentsTable tbody')
   tbody.innerHTML = data.agents.map(a => `
     <tr>
       <td class="agent-id">${a.id}</td>
-      <td>$${a.maxPrice.widget.toFixed(2)}</td>
-      <td>$${a.maxPrice.report.toFixed(2)}</td>
-      <td>$${a.maxPrice.analysis.toFixed(2)}</td>
+      ${keys.map(k => `<td>$${a.maxPrice[k].toFixed(4)}</td>`).join('')}
     </tr>
   `).join('')
 }).catch(() => {})

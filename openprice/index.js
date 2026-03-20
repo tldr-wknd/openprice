@@ -85,7 +85,7 @@ export function withOpenPrice(mppx, opts = {}) {
   const {
     dbPath = './openprice.db',
     token = null,
-    agentsFile = null,
+    agentsFile = process.env.OPENPRICE_AGENTS_FILE || null,
   } = opts
 
   const db = new Database(dbPath)

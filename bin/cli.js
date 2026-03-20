@@ -414,7 +414,7 @@ async function runTest() {
   const serverProc = fork(serverFile, {
     cwd,
     stdio: 'pipe',
-    env: { ...process.env, OPENPRICE_TESTNET: '1' },
+    env: { ...process.env, OPENPRICE_TESTNET: '1', OPENPRICE_AGENTS_FILE: 'openprice-agents.json' },
   })
 
   // Wait for server to be ready
@@ -488,6 +488,16 @@ async function runTest() {
     }
     return { id: `agent-${String(i + 1).padStart(3, '0')}`, maxPrice }
   })
+
+  // Write agents file so dashboard can show profiles
+  const agentsForDisplay = agents.map(a => ({
+    id: a.id,
+    maxPrice: Object.fromEntries(products.map(p => [p.name, a.maxPrice[p.path]])),
+  }))
+  writeFileSync(join(cwd, 'openprice-agents.json'), JSON.stringify({
+    description: `${AGENT_COUNT} simulated agents with varied price preferences (±20% noise)`,
+    agents: agentsForDisplay,
+  }, null, 2))
 
   let currentMaxPrice = 0
 

@@ -15,7 +15,7 @@ import { Mppx as MppxClient, tempo as tempoClient } from 'mppx/client'
 import { resolveAccount } from 'mppx/cli'
 import { execSync } from 'child_process'
 import { withOpenPrice } from './openprice/index.js'
-import { existsSync, unlinkSync } from 'fs'
+import { existsSync, unlinkSync, writeFileSync } from 'fs'
 
 const PORT = 3000
 
@@ -56,7 +56,7 @@ const mppx = Mppx.create({
   })],
 })
 
-const openprice = withOpenPrice(mppx, { token: process.env.OPENPRICE_TOKEN })
+const openprice = withOpenPrice(mppx, { token: process.env.OPENPRICE_TOKEN, agentsFile: 'openprice-agents.json' })
 
 app.get('/', (c) => c.json({ service: 'Widgets, Inc.', dashboard: '/openprice' }))
 
@@ -156,15 +156,20 @@ serve({ fetch: app.fetch, port: PORT }, async (info) => {
 
   const AGENTS = Array.from({ length: AGENT_COUNT }, (_, i) => {
     const t = i / (AGENT_COUNT - 1)
-    return {
-      id: `agent-${String(i + 1).padStart(3, '0')}`,
-      maxPrice: {
-        cheap:  PRODUCTS[0].min + t * (PRODUCTS[0].max - PRODUCTS[0].min),
-        widget: PRODUCTS[1].min + t * (PRODUCTS[1].max - PRODUCTS[1].min),
-        fancy:  PRODUCTS[2].min + t * (PRODUCTS[2].max - PRODUCTS[2].min),
-      },
+    const maxPrice = {}
+    for (const p of PRODUCTS) {
+      const base = p.min + t * (p.max - p.min)
+      const noise = 1 + (Math.random() - 0.5) * 0.4
+      maxPrice[p.key] = Math.max(p.min * 0.5, Math.min(p.max * 1.2, base * noise))
     }
+    return { id: `agent-${String(i + 1).padStart(3, '0')}`, maxPrice }
   })
+
+  // Write agents file so dashboard can show profiles
+  writeFileSync('openprice-agents.json', JSON.stringify({
+    description: `${AGENT_COUNT} simulated agents with varied price preferences (±20% noise)`,
+    agents: AGENTS,
+  }, null, 2))
 
   let currentMaxPrice = 0
   let lastChallengePrice = 0
