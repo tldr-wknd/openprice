@@ -154,20 +154,20 @@ Then:
 3. **Start the server normally** — however they usually run it (e.g., `node server.js`)
 4. **Confirm it's running** — visit the root URL and verify the server responds
 5. **Open the dashboard** — visit `/openprice` and confirm it loads (it will be empty — that's expected)
+6. **Tell the user their dashboard URL.** Give them the full URL (e.g., `http://localhost:4000/openprice`) so they can bookmark it and check back as data comes in.
 
 Tell the user:
 
-> "You're live. The dashboard is empty because no real agents have hit your endpoints yet. Here's what to watch for:"
+> "You're live! Your dashboard is at `{server-url}/openprice`. It's empty now because no real agents have hit your endpoints yet. As requests come in, the charts will build automatically. Here's what to expect:"
 
 ## What to Watch For in Production
 
 Share this with the user after deploying:
 
-- **First few hours:** You'll see individual dots appearing on the charts. Each request is a data point. Don't read too much into early results — small samples are noisy.
 - **~100 requests:** The demand curve starts to take shape. You can see general trends (are agents price-sensitive or not?) but the ★ optimal price may still move around.
 - **~500 requests:** Curves are becoming reliable. The ★ should be stabilizing. If it's near the edge of your range, consider widening that side.
 - **~1,000 requests:** This is the sweet spot. The ★ is your optimal price with high confidence. You now know what to charge.
-- **After convergence:** Tighten your `range` around the ★ (e.g., ±20%) and let it refine further. Or lock in the optimal price by removing the `range` parameter entirely.
+- **After convergence:** Tighten your `range` around the ★ (e.g., ±20%) to refine further. Or lock in the optimal price by removing the `range` parameter entirely.
 
 **Key signals to watch:**
 - If the ★ is at the **left edge** of your range → your floor is too high, agents think you're expensive. Lower the floor.
