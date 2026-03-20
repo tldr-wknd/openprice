@@ -150,10 +150,10 @@ Tell the user:
 Then:
 
 1. **Stop the test server** if it's still running (Ctrl+C)
-2. **Delete the test database** so production starts fresh: `rm -f openprice.db`
-3. **Start the server normally** — however they usually run it (e.g., `node server.js`)
-4. **Confirm it's running** — visit the root URL and verify the server responds
-5. **Open the dashboard** — visit `/openprice` and confirm it loads (it will be empty — that's expected)
+2. **Delete ONLY the test database file:** `rm -f openprice.db` — do NOT delete the `openprice/` directory (that's the library code your server needs)
+3. **Start the server normally** — however they usually run it (e.g., `node server.js`). No code changes needed — the server code is identical for testnet and production.
+4. **Confirm it's running** — `curl http://localhost:{port}/` should return JSON. If it doesn't, check for startup errors.
+5. **Confirm the dashboard loads** — `curl -s -o /dev/null -w '%{http_code}' http://localhost:{port}/openprice` should return `200`
 6. **Tell the user their dashboard URL.** Give them the full URL (e.g., `http://localhost:4000/openprice`) so they can bookmark it and check back as data comes in.
 
 Tell the user:
