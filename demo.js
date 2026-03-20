@@ -113,9 +113,9 @@ serve({ fetch: app.fetch, port: PORT }, async (info) => {
   the demand curve in real-time.
 
   Endpoints & price ranges:
-    Cheap widget       $0.001 – $0.05  (uniform)
+    Cheap widget       $0.001 – $0.05  (skew-low)
     Widget             $0.01 – $0.25   (uniform)
-    Fancy widget       $0.02 – $0.50   (uniform)
+    Fancy widget       $0.02 – $0.50   (skew-high)
 
   Dashboard: ${url}
 

@@ -476,12 +476,15 @@ async function runTest() {
   const REQUESTS_PER_AGENT = 10
   const total = AGENT_COUNT * REQUESTS_PER_AGENT
 
-  // Create agents with uniform willingness across each product's range
+  // Create agents with varied willingness — add noise so curves aren't perfectly linear
   const agents = Array.from({ length: AGENT_COUNT }, (_, i) => {
     const t = i / (AGENT_COUNT - 1)
     const maxPrice = {}
     for (const p of products) {
-      maxPrice[p.path] = p.min + t * (p.max - p.min)
+      // Base willingness + random noise (±20%) for realistic demand curves
+      const base = p.min + t * (p.max - p.min)
+      const noise = 1 + (Math.random() - 0.5) * 0.4
+      maxPrice[p.path] = Math.max(p.min * 0.5, Math.min(p.max * 1.2, base * noise))
     }
     return { id: `agent-${String(i + 1).padStart(3, '0')}`, maxPrice }
   })
