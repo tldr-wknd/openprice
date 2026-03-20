@@ -159,9 +159,9 @@ serve({ fetch: app.fetch, port: PORT }, async (info) => {
     return {
       id: `agent-${String(i + 1).padStart(3, '0')}`,
       maxPrice: {
-        widget:   PRODUCTS[0].min + t * (PRODUCTS[0].max - PRODUCTS[0].min),
-        report:   PRODUCTS[1].min + t * (PRODUCTS[1].max - PRODUCTS[1].min),
-        analysis: PRODUCTS[2].min + t * (PRODUCTS[2].max - PRODUCTS[2].min),
+        cheap:  PRODUCTS[0].min + t * (PRODUCTS[0].max - PRODUCTS[0].min),
+        widget: PRODUCTS[1].min + t * (PRODUCTS[1].max - PRODUCTS[1].min),
+        fancy:  PRODUCTS[2].min + t * (PRODUCTS[2].max - PRODUCTS[2].min),
       },
     }
   })
