@@ -451,18 +451,22 @@ async function runTest() {
     execSync(`${cmd} ${dashUrl}`, { stdio: 'ignore' })
   } catch {}
 
-  // Setup testnet wallet
+  // Setup testnet wallet — always fund to ensure balance
   const { resolveAccount } = await import('mppx/cli')
   const DEMO_ACCOUNT = '_openprice_test_'
   let account
   try {
     account = await resolveAccount(DEMO_ACCOUNT)
   } catch {
-    console.log('\n  Setting up testnet wallet (one-time)...')
+    console.log('\n  Setting up testnet wallet...')
     execSync(`npx mppx account create --account ${DEMO_ACCOUNT}`, { stdio: 'pipe' })
-    execSync(`npx mppx account fund --account ${DEMO_ACCOUNT}`, { stdio: 'pipe' })
     account = await resolveAccount(DEMO_ACCOUNT)
+  }
+  try {
+    execSync(`npx mppx account fund --account ${DEMO_ACCOUNT}`, { stdio: 'pipe' })
     console.log('  Wallet funded ✓')
+  } catch {
+    // Fund may fail if already funded recently, that's ok
   }
 
   // Setup client
