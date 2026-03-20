@@ -56,7 +56,7 @@ const mppx = Mppx.create({
   })],
 })
 
-const openprice = withOpenPrice(mppx, { token: process.env.OPENPRICE_TOKEN })
+const openprice = withOpenPrice(mppx, { token: process.env.OPENPRICE_TOKEN, agentsFile: 'openprice-agents.json' })
 
 app.get('/', (c) => c.json({ service: 'Widgets, Inc.', dashboard: '/openprice' }))
 
@@ -165,6 +165,14 @@ serve({ fetch: app.fetch, port: PORT }, async (info) => {
       },
     }
   })
+
+  // Write agent profiles for dashboard
+  const { writeFileSync } = await import('fs')
+  writeFileSync('./openprice-agents.json', JSON.stringify({
+    description: `${AGENT_COUNT} simulated agents with uniform willingness to pay`,
+    products: PRODUCTS.map(p => ({ name: p.key, path: p.path })),
+    agents: AGENTS.map(a => ({ id: a.id, maxPrice: a.maxPrice })),
+  }, null, 2))
 
   let currentMaxPrice = 0
   let lastChallengePrice = 0

@@ -85,7 +85,7 @@ export function withOpenPrice(mppx, opts = {}) {
   const {
     dbPath = './openprice.db',
     token = null,
-    agentsFile = null,
+    agentsFile = process.env.OPENPRICE_AGENTS_FILE || null,
   } = opts
 
   const db = new Database(dbPath)
@@ -117,6 +117,9 @@ export function withOpenPrice(mppx, opts = {}) {
   const insertPayment = db.prepare(
     'INSERT INTO payments (challenge_id, endpoint, amount, timestamp) VALUES (?, ?, ?, ?)'
   )
+
+  // Base prices per endpoint (set when charge() is called)
+  const baseAmounts = {}
 
   // SSE clients
   const sseClients = new Set()
@@ -155,6 +158,7 @@ export function withOpenPrice(mppx, opts = {}) {
   function charge(options) {
     const { range, strategy = 'uniform', ...chargeOptions } = options
     const endpoint = chargeOptions.description || 'unknown'
+    baseAmounts[endpoint] = parseFloat(chargeOptions.amount)
 
     // No range = pass through to mppx.charge() unchanged
     if (!range) {
@@ -430,7 +434,7 @@ export function withOpenPrice(mppx, opts = {}) {
         }
       }
 
-      return c.json({ endpoints, curves })
+      return c.json({ endpoints, curves, baseAmounts })
     })
 
     app.get('/api/log', (c) => {
