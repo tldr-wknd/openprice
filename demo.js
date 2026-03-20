@@ -62,7 +62,7 @@ app.get('/', (c) => c.json({ service: 'Widgets, Inc.', dashboard: '/openprice' }
 
 app.get('/api/cheap-widgets', openprice.charge({
   amount: '0.01', description: 'Cheap widget',
-  range: [0.001, 0.05], strategy: 'uniform',
+  range: [0.001, 0.05], strategy: 'skew-low',
 }), (c) => {
   const w = CHEAP_WIDGETS[Math.floor(Math.random() * CHEAP_WIDGETS.length)]
   return c.json({ widget: { ...w, price_paid: c.get('openprice.amount') } })
@@ -78,7 +78,7 @@ app.get('/api/widgets', openprice.charge({
 
 app.get('/api/fancy-widgets', openprice.charge({
   amount: '0.10', description: 'Fancy widget',
-  range: [0.02, 0.50], strategy: 'uniform',
+  range: [0.02, 0.50], strategy: 'skew-high',
 }), (c) => {
   const w = FANCY_WIDGETS[Math.floor(Math.random() * FANCY_WIDGETS.length)]
   return c.json({ widget: { ...w, price_paid: c.get('openprice.amount') } })
