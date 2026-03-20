@@ -303,10 +303,15 @@ async function loadData() {
   const data = await dataRes.json()
   const log = await logRes.json()
 
-  // Tabs
+  // Tabs — sorted by average price (cheapest first)
+  const sortedEndpoints = [...data.endpoints].sort((a, b) => {
+    const avgA = data.curves[a]?.outcomes?.reduce((s, o) => s + o.price, 0) / (data.curves[a]?.outcomes?.length || 1) || 0
+    const avgB = data.curves[b]?.outcomes?.reduce((s, o) => s + o.price, 0) / (data.curves[b]?.outcomes?.length || 1) || 0
+    return avgA - avgB
+  })
   const tabsEl = document.getElementById('endpointTabs')
   tabsEl.innerHTML = `<div class="ep-tab ${!currentEndpoint ? 'active' : ''}" onclick="selectEndpoint(null)">All</div>`
-    + data.endpoints.map(ep =>
+    + sortedEndpoints.map(ep =>
       `<div class="ep-tab ${currentEndpoint === ep ? 'active' : ''}" onclick="selectEndpoint('${ep}')">${ep}</div>`
     ).join('')
 
